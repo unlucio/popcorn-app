@@ -12,7 +12,8 @@ var
     gui = require('nw.gui'),
 
     // Debug flag
-    isDebug = gui.App.argv.indexOf('--debug') > -1,
+    //isDebug = gui.App.argv.indexOf('--debug') > -1,
+    isDebug = true;
 
     // browser window object
     win = gui.Window.get(),
@@ -34,6 +35,8 @@ var
 
     // i18n module (translations)
     i18n = require("i18n");
+
+    console.log("gui.App.argv:"+JSON.stringify(gui)+" || isDebug: ", isDebug);
 
     isWin = (process.platform === 'win32');
     isLinux = (process.platform === 'linux');

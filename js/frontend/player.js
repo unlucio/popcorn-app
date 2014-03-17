@@ -11,6 +11,12 @@ var playTorrent = window.playTorrent = function (torrent, subs, movieModel, call
   tmpFilename = tmpFilename.replace(/([^a-zA-Z0-9-_])/g, '_') + '.mp4';
   var tmpFile = path.join(tmpFolder, tmpFilename);
 
+  console.log("==> tmpFile: "+tmpFile);
+
+  App.userPrefs.getItem(tmpFilename, function(results){
+    console.log("searching playing movies results: ", results);
+  });
+
   var numCores = (os.cpus().length > 0) ? os.cpus().length : 1;
   var numConnections = 100;
 
@@ -49,7 +55,7 @@ var playTorrent = window.playTorrent = function (torrent, subs, movieModel, call
 
         if (now > targetLoaded) {
           if (typeof window.spawnVideoPlayer === 'function') {
-            window.spawnVideoPlayer(href, subs, movieModel);
+            window.spawnVideoPlayer(href, subs, movieModel, tmpFilename);
           }
           if (typeof callback === 'function') {
             callback(href, subs, movieModel);
@@ -121,7 +127,7 @@ function videoError(e) {
 
 // Handles the opening of the video player
 
-window.spawnVideoPlayer = function (url, subs, movieModel) {
+window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
 
     // Sort sub according lang translation
     var subArray = [];
@@ -167,6 +173,7 @@ window.spawnVideoPlayer = function (url, subs, movieModel) {
 
     // Init video.
     var video = window.videoPlaying = videojs('video_player', { plugins: { biggerSubtitle : {}, smallerSubtitle : {}, customSubtitles: {} }});
+    video.tmpFilename = tmpFilename;
 
     // Enter full-screen
     $('.vjs-fullscreen-control').on('click', function () {
@@ -216,6 +223,12 @@ window.spawnVideoPlayer = function (url, subs, movieModel) {
 
     // Close player
     $('#video_player_close').on('click', function () {
+      if (video !== undefined && video !== null) {
+        console.log("VIDEO:: video -> ", video);
+        console.log("ELAPSED VIDEO:: video.currentTime() -> ", video.currentTime());
+        //App.userPrefs.setItem(video.tmpFilename, video.currentTime());
+        App.userPrefs.setItem("pippo", video.currentTime());
+      }
       win.leaveFullscreen();
       $('#video-container').hide();
       video.dispose();
