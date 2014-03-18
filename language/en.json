@@ -21,6 +21,10 @@
 	"legalDisclaimerResponsible": "We are not responsible for any problems that may arise, so make sure you understand our Terms and Conditions before using the app.",
 	"legalDisclaimerAccept": "I understand",
 	"legalDisclaimerCancel": "Leave",
+	"SeekAlertTitle":"Looks like this video has been played before",
+	"SeekAlert":"Would you like to resume it?",
+	"SeekOk":"Go ahead",
+	"SeekCancel":"Start from the beguinning",
 	"genres": {
 		"all": "Popular",
 		"action": "Action",

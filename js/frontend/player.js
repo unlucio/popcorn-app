@@ -218,6 +218,7 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
     // Close player
     $('#video_player_close').on('click', function () {
       
+      
       App.userPrefs.setItem(video.tmpFilename, video.currentTime());
       
       win.leaveFullscreen();
@@ -234,28 +235,41 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
       App.userPrefs.setItem(video.tmpFilename, video.currentTime());
     });
 
+    video.needSeek = true;
+
     video.player().on('durationchange', function () {
       if (video.needSeek) {
         video.needSeek = false;
-        if (App.userPrefs.getItem(tmpFilename) > 0) {
+      
+        if (App.userPrefs.getItem(video.tmpFilename) > 0) {
 
-          var r = confirm("seek?");
-          if (r == true) {
+          var panel = '<div class="video-resume-dialog"><div class="wrapper"><span class="text" data-translate="SeekAlertTitle"></span><span class="text" data-translate="SeekAlert"></span><br/><a class="btn confirmation cancel" data-translate="SeekCancel"></a><a class="btn confirmation seek" data-translate="SeekOk"></a></div></div>';
+          $('#video-container').append(panel);
+          detectLanguage('en');
+
+          $('#video-container .video-resume-dialog .btn.confirmation.seek').click(function(event){
+            event.preventDefault();
             window.videoPlaying.currentTime(App.userPrefs.getItem(tmpFilename));
-          }
+            $('#video-container .video-resume-dialog').addClass('hidden');
+          });
+
+          $('#video-container .video-resume-dialog .btn.confirmation.cancel').click(function(event){
+            event.preventDefault();
+            $('#video-container .video-resume-dialog').addClass('hidden');
+          });
+
         }
       }
     });
 
-    video.needSeek = true;
-
-    video.player().on('timeupdate', function () {
-      
+    video.player().on('ended', function () {
+      App.userPrefs.deleteItem(video.tmpFilename)
     });
 
     video.player().on('play', function () {
       // Trigger a resize so the subtitles are adjusted
       $(window).trigger('resize');
+      App.userPrefs.setItem(video.tmpFilename, 0);
     });
 
     // There was an issue with the video
