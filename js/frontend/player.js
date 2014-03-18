@@ -219,7 +219,7 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
     $('#video_player_close').on('click', function () {
       
       
-      App.userPrefs.setItem(video.tmpFilename, video.currentTime());
+      App.resumeInfos.setItem(video.tmpFilename, video.currentTime());
       
       win.leaveFullscreen();
       $('#video-container').hide();
@@ -232,7 +232,7 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
 
     // Had only tracking in, leave it here if we want to do something else when paused.
     video.player().on('pause', function () {
-      App.userPrefs.setItem(video.tmpFilename, video.currentTime());
+      App.resumeInfos.setItem(video.tmpFilename, video.currentTime());
     });
 
     video.needSeek = true;
@@ -241,20 +241,23 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
       if (video.needSeek) {
         video.needSeek = false;
       
-        if (App.userPrefs.getItem(video.tmpFilename) > 0) {
+        if (App.resumeInfos.getItem(video.tmpFilename) > 0) {
 
-          var panel = '<div class="video-resume-dialog"><div class="wrapper"><span class="text" data-translate="SeekAlertTitle"></span><span class="text" data-translate="SeekAlert"></span><br/><a class="btn confirmation cancel" data-translate="SeekCancel"></a><a class="btn confirmation seek" data-translate="SeekOk"></a></div></div>';
+          var panel = '<div class="video-resume-dialog"><div class="wrapper"><span class="text" data-translate="SeekAlertTitle"></span><span class="text" data-translate="SeekAlert"></span><br/><a class="btn confirmation cancel" data-translate="SeekCancel"></a>&nbsp;&nbsp;<a class="btn confirmation seek" data-translate="SeekOk"></a></div></div>';
           $('#video-container').append(panel);
           detectLanguage('en');
 
           $('#video-container .video-resume-dialog .btn.confirmation.seek').click(function(event){
             event.preventDefault();
-            window.videoPlaying.currentTime(App.userPrefs.getItem(tmpFilename));
+            window.videoPlaying.currentTime(App.resumeInfos.getItem(tmpFilename));
             $('#video-container .video-resume-dialog').addClass('hidden');
           });
 
           $('#video-container .video-resume-dialog .btn.confirmation.cancel').click(function(event){
             event.preventDefault();
+            App.resumeInfos.deleteItem(video.tmpFilename);
+            App.resumeInfos.setItem(video.tmpFilename, 0);
+
             $('#video-container .video-resume-dialog').addClass('hidden');
           });
 
@@ -263,13 +266,21 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
     });
 
     video.player().on('ended', function () {
-      App.userPrefs.deleteItem(video.tmpFilename)
+      App.resumeInfos.deleteItem(video.tmpFilename)
+    });
+
+    video.player().on('timeupdate', function () {
+
+      var currentTime = video.currentTime();
+      if ((parseInt(currentTime)%60) == 0) {
+        App.resumeInfos.setItem(video.tmpFilename, video.currentTime());
+      }
     });
 
     video.player().on('play', function () {
       // Trigger a resize so the subtitles are adjusted
       $(window).trigger('resize');
-      App.userPrefs.setItem(video.tmpFilename, 0);
+      App.resumeInfos.setItem(video.tmpFilename, 0);
     });
 
     // There was an issue with the video

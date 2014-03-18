@@ -6,13 +6,22 @@ App.resumeInfos = {
     },
     getItem: function (videoid) {
         var elapsed  = inProgressMovies[videoid];
-        console.log("inProgressMovies: ", inProgressMovies);
+        //console.log("inProgressMovies: ", inProgressMovies);
         return (elapsed !== undefined && elapsed > 0)? elapsed :0;
     },
     setItem: function (videoid, elapsedTime) {
-        inProgressMovies[videoid] = parseInt(elapsedTime);
-        localStorage.PCT_inProgress = JSON.stringify(inProgressMovies);
-        console.log("inProgressMovies: ", inProgressMovies);
+        var intTime = parseInt(elapsedTime);
+
+        if (inProgressMovies[videoid] === undefined) {
+            inProgressMovies[videoid] = intTime;
+            localStorage.PCT_inProgress = JSON.stringify(inProgressMovies);
+        }
+
+        if (intTime > inProgressMovies[videoid]) {
+            inProgressMovies[videoid] = intTime;
+            localStorage.PCT_inProgress = JSON.stringify(inProgressMovies);
+        }
+        //console.log("inProgressMovies: ", inProgressMovies);
     },
     deleteItem: function(videoid) {
         delete inProgressMovies[videoid];

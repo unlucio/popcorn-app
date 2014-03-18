@@ -12,8 +12,7 @@ var
     gui = require('nw.gui'),
 
     // Debug flag
-    //isDebug = gui.App.argv.indexOf('--debug') > -1,
-    isDebug = true;
+    isDebug = gui.App.argv.indexOf('--debug') > -1,
 
     // browser window object
     win = gui.Window.get(),
