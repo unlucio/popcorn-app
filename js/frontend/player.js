@@ -11,12 +11,6 @@ var playTorrent = window.playTorrent = function (torrent, subs, movieModel, call
   tmpFilename = tmpFilename.replace(/([^a-zA-Z0-9-_])/g, '_') + '.mp4';
   var tmpFile = path.join(tmpFolder, tmpFilename);
 
-  console.log("==> tmpFile: "+tmpFile);
-
-  App.userPrefs.getItem(tmpFilename, function(results){
-    console.log("searching playing movies results: ", results);
-  });
-
   var numCores = (os.cpus().length > 0) ? os.cpus().length : 1;
   var numConnections = 100;
 
@@ -174,7 +168,7 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
     // Init video.
     var video = window.videoPlaying = videojs('video_player', { plugins: { biggerSubtitle : {}, smallerSubtitle : {}, customSubtitles: {} }});
     video.tmpFilename = tmpFilename;
-
+    
     // Enter full-screen
     $('.vjs-fullscreen-control').on('click', function () {
       if(win.isFullscreen) {
@@ -223,12 +217,9 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
 
     // Close player
     $('#video_player_close').on('click', function () {
-      if (video !== undefined && video !== null) {
-        console.log("VIDEO:: video -> ", video);
-        console.log("ELAPSED VIDEO:: video.currentTime() -> ", video.currentTime());
-        //App.userPrefs.setItem(video.tmpFilename, video.currentTime());
-        App.userPrefs.setItem("pippo", video.currentTime());
-      }
+      
+      App.userPrefs.setItem(video.tmpFilename, video.currentTime());
+      
       win.leaveFullscreen();
       $('#video-container').hide();
       video.dispose();
@@ -240,7 +231,26 @@ window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
 
     // Had only tracking in, leave it here if we want to do something else when paused.
     video.player().on('pause', function () {
+      App.userPrefs.setItem(video.tmpFilename, video.currentTime());
+    });
 
+    video.player().on('durationchange', function () {
+      if (video.needSeek) {
+        video.needSeek = false;
+        if (App.userPrefs.getItem(tmpFilename) > 0) {
+
+          var r = confirm("seek?");
+          if (r == true) {
+            window.videoPlaying.currentTime(App.userPrefs.getItem(tmpFilename));
+          }
+        }
+      }
+    });
+
+    video.needSeek = true;
+
+    video.player().on('timeupdate', function () {
+      
     });
 
     video.player().on('play', function () {
