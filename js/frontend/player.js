@@ -49,7 +49,7 @@ var playTorrent = window.playTorrent = function (torrent, subs, movieModel, call
 
         if (now > targetLoaded) {
           if (typeof window.spawnVideoPlayer === 'function') {
-            window.spawnVideoPlayer(href, subs, movieModel);
+            window.spawnVideoPlayer(href, subs, movieModel, tmpFilename);
           }
           if (typeof callback === 'function') {
             callback(href, subs, movieModel);
@@ -121,7 +121,7 @@ function videoError(e) {
 
 // Handles the opening of the video player
 
-window.spawnVideoPlayer = function (url, subs, movieModel) {
+window.spawnVideoPlayer = function (url, subs, movieModel, tmpFilename) {
 
     // Sort sub according lang translation
     var subArray = [];
@@ -167,7 +167,8 @@ window.spawnVideoPlayer = function (url, subs, movieModel) {
 
     // Init video.
     var video = window.videoPlaying = videojs('video_player', { plugins: { biggerSubtitle : {}, smallerSubtitle : {}, customSubtitles: {} }});
-
+    video.tmpFilename = tmpFilename;
+    
     // Enter full-screen
     $('.vjs-fullscreen-control').on('click', function () {
       if(win.isFullscreen) {
@@ -216,6 +217,10 @@ window.spawnVideoPlayer = function (url, subs, movieModel) {
 
     // Close player
     $('#video_player_close').on('click', function () {
+      
+      
+      App.resumeInfos.setItem(video.tmpFilename, video.currentTime());
+      
       win.leaveFullscreen();
       $('#video-container').hide();
       video.dispose();
@@ -227,12 +232,55 @@ window.spawnVideoPlayer = function (url, subs, movieModel) {
 
     // Had only tracking in, leave it here if we want to do something else when paused.
     video.player().on('pause', function () {
+      App.resumeInfos.setItem(video.tmpFilename, video.currentTime());
+    });
 
+    video.needSeek = true;
+
+    video.player().on('durationchange', function () {
+      if (video.needSeek) {
+        video.needSeek = false;
+      
+        if (App.resumeInfos.getItem(video.tmpFilename) > 0) {
+
+          var panel = '<div class="video-resume-dialog"><div class="wrapper"><span class="text" data-translate="SeekAlertTitle"></span><span class="text" data-translate="SeekAlert"></span><br/><a class="btn confirmation cancel" data-translate="SeekCancel"></a>&nbsp;&nbsp;<a class="btn confirmation seek" data-translate="SeekOk"></a></div></div>';
+          $('#video-container').append(panel);
+          detectLanguage('en');
+
+          $('#video-container .video-resume-dialog .btn.confirmation.seek').click(function(event){
+            event.preventDefault();
+            window.videoPlaying.currentTime(App.resumeInfos.getItem(tmpFilename));
+            $('#video-container .video-resume-dialog').addClass('hidden');
+          });
+
+          $('#video-container .video-resume-dialog .btn.confirmation.cancel').click(function(event){
+            event.preventDefault();
+            App.resumeInfos.deleteItem(video.tmpFilename);
+            App.resumeInfos.setItem(video.tmpFilename, 0);
+
+            $('#video-container .video-resume-dialog').addClass('hidden');
+          });
+
+        }
+      }
+    });
+
+    video.player().on('ended', function () {
+      App.resumeInfos.deleteItem(video.tmpFilename)
+    });
+
+    video.player().on('timeupdate', function () {
+
+      var currentTime = video.currentTime();
+      if ((parseInt(currentTime)%60) == 0) {
+        App.resumeInfos.setItem(video.tmpFilename, video.currentTime());
+      }
     });
 
     video.player().on('play', function () {
       // Trigger a resize so the subtitles are adjusted
       $(window).trigger('resize');
+      App.resumeInfos.setItem(video.tmpFilename, 0);
     });
 
     // There was an issue with the video

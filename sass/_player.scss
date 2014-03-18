@@ -105,6 +105,63 @@
   .vjs-seek-handle { display: none; }
 }
 
+.video-resume-dialog {
+  @include transition(opacity ease .3s);
+  background: rgba(0, 0, 0, .8);
+  color: #fff;
+  height: calc(100% - #{$header_height});
+  left: 0;
+  opacity: 1;
+  position: absolute;
+  top: $header_height;
+  width: 100%;
+  z-index: 999;
+
+  &.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .text, .btn {
+    @include transition(opacity 2.0s ease-out);
+  }
+
+  .wrapper {
+    @include translateY(-50%);
+    font-size: 30px;
+    position: absolute;
+    top: 50%;
+    text-align: center;
+    width: 100%;
+  }
+
+  .text {
+    display: block;
+    font-size: 22px;
+    line-height: 150%;
+    width: 30em;
+    margin: 0px auto;
+    margin-bottom: 15px;
+  }
+
+  .btn {
+    padding: 1.1em 3em;
+    font-size:18px;
+
+    &.seek {
+      font-size: 18px;
+      font-weight: bold;
+      background: $popcorn-blue;    }
+
+    &.cancel {
+      font-size: 18px;
+      background: #999999;
+      font-weight:normal;
+    }
+  }
+
+}
+
 
 // Hide other UI elements while watching the movie
 body.watching {

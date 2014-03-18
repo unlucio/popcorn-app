@@ -35,6 +35,8 @@ var
     // i18n module (translations)
     i18n = require("i18n");
 
+    console.log("gui.App.argv:"+JSON.stringify(gui)+" || isDebug: ", isDebug);
+
     isWin = (process.platform === 'win32');
     isLinux = (process.platform === 'linux');
     isOSX = (process.platform === 'darwin');
